@@ -60,3 +60,15 @@ The application follows a modular design with clear separation between simulatio
 - Simulation parameters and API settings
 
 ---
+
+## 🔄 Data Flow
+
+1. **Simulation Initiation:** User triggers simulation via web interface or CLI.
+2. **Initial Price Fetch:** System queries Jupiter API for current token price.
+3. **Block Delay Simulation:** Monitors price changes over specified delay period.
+4. **Risk Analysis:** Analyzes price movements against configurable thresholds.
+5. **MEV Calculation:** Estimates potential front-running profits.
+6. **Report Generation:** Compiles results into web dashboard or CLI output.
+7. **Historical Storage:** Maintains simulation results for trend analysis.
+
+---
