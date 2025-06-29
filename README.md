@@ -72,3 +72,23 @@ The application follows a modular design with clear separation between simulatio
 7. **Historical Storage:** Maintains simulation results for trend analysis.
 
 ---
+
+## 📦 External Dependencies
+
+### 🧰 Core Dependencies
+- `aiohttp (3.12.13)`: Async HTTP client/server framework
+- `jinja2 (3.1.6)`: Template engine for web interface
+- `asyncio`: Built-in Python async library
+
+### 🖼️ Frontend Dependencies (CDN)
+- **Bootstrap 5.1.3:** CSS framework for responsive design
+- **Chart.js:** JavaScript charting library
+- **Font Awesome 6.0.0:** Icon library
+
+### 🌐 External APIs
+- **Jupiter API:** Primary data source for cryptocurrency prices  
+  - Price API: `https://price.jup.ag/v6`
+  - Quote API: `https://quote-api.jup.ag/v6/quote`
+- **Solana Token Registry:** Token mint address resolution
+
+---
