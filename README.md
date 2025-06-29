@@ -26,3 +26,37 @@ The application follows a modular design with clear separation between simulatio
 - **Static Assets:** CSS and JavaScript files served directly by `aiohttp`.
 
 ---
+
+## 🗂️ Key Components
+
+### 🧩 OTC Simulator Engine (`simulator/otc_simulator.py`)
+- Main simulation orchestrator
+- Coordinates price monitoring, risk detection, and MEV calculations
+- Handles multiple simulation iterations
+
+### 🔗 Jupiter API Client (`simulator/jupiter_client.py`)
+- Interfaces with **Jupiter DEX API** for real-time price data
+- Implements retry logic and error handling
+- Monitors price changes during block delays
+
+### 🚨 Risk Detector (`simulator/risk_detector.py`)
+- Analyzes price movements to identify front-running risks
+- Calculates risk scores based on price thresholds and trade impact
+- Provides detailed risk assessment metrics
+
+### 💰 MEV Calculator (`simulator/mev_calculator.py`)
+- Estimates potential profits from front-running opportunities
+- Accounts for gas costs, slippage, and transaction fees
+- Calculates net MEV value in USD
+
+### 🌐 Web Server (`web_server.py`)
+- Serves the web dashboard and API endpoints
+- Handles CORS for frontend-backend communication
+- Manages simulation state and results storage
+
+### ⚙️ Configuration System (`simulator/config.py`)
+- Centralized configuration management
+- Token mint address mappings for Solana
+- Simulation parameters and API settings
+
+---
