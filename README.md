@@ -92,3 +92,40 @@ The application follows a modular design with clear separation between simulatio
 - **Solana Token Registry:** Token mint address resolution
 
 ---
+
+## ✨ Enhanced Features (
+
+### 🪙 Multiple Token Support
+- Support for **12 major cryptocurrencies**: SOL, BTC, ETH, USDC, USDT, BNB, ADA, MATIC, AVAX, DOT, LINK, UNI.
+- **CoinGecko** integration for accurate price data across major tokens.
+- Batch simulations across multiple tokens simultaneously.
+
+### ⚡ Real-time Price Alerts
+- Configurable price change thresholds (default **2%**).
+- Alert system tracks and logs significant price movements.
+- Historical alert tracking for trend analysis.
+
+### 📈 Historical Price Analysis
+- 24-hour price history tracking with configurable windows.
+- Market volatility calculations and trend detection.
+- Pattern recognition for stable, volatile, and trending markets.
+
+### 🔍 Advanced Risk Scoring
+- Multi-factor risk assessment combining **price**, **volatility**, **trade size**, and **market patterns**.
+- Weighted composite risk scores with detailed breakdowns.
+- Risk mitigation recommendations based on market conditions.
+
+### 🌊 Market Volatility Tracking
+- Real-time volatility calculations for all supported tokens.
+- Configurable tracking windows (default **24 hours**).
+- Historical volatility data for trend analysis.
+
+### 📊 Batch Simulations
+- Multi-token batch analysis across different cryptocurrencies.
+- Multi-delay testing with custom time periods (1s, 2s, 3s, 5s, 10s).
+- Enhanced batch simulations combining all features.
+
+### ⏱️ Custom Delay Periods
+- Test different block delay scenarios (1–10 seconds).
+- Identify optimal delays for maximum MEV opportunities.
+- Delay-specific risk analysis and recommendations.
