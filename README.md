@@ -132,5 +132,7 @@ The application follows a modular design with clear separation between simulatio
   
   ---
 
-  ## LICENSE - MIT LICENSE
-  - This project is under the **MIT LICENSE**
+ ### LICENSE - MIT LICENSE
+   - This project is under the **MIT LICENSE**
+
+      ---
