@@ -129,3 +129,5 @@ The application follows a modular design with clear separation between simulatio
 - Test different block delay scenarios (1–10 seconds).
 - Identify optimal delays for maximum MEV opportunities.
 - Delay-specific risk analysis and recommendations.
+  
+  ---
