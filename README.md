@@ -96,8 +96,8 @@ The application follows a modular design with clear separation between simulatio
 ## ✨ Enhanced Features (
 
 ### 🪙 Multiple Token Support
-- Currently, the simulator supports **4 major cryptocurrencies**:  **SOL**, **RAY**, **USDC**, and **USDT**
-🔍 *Originally planned to include additional assets like BTC, ETH, BNB, ADA, MATIC, AVAX, DOT, LINK, and UNI. However, the scope was narrowed to focus on the core four tokens for simplicity and performance during early development.*
+-This simulator currently supports **16 cryptocurrencies**, all of which are functional.  However, it is **primarily used and tested with**: **SOL**, **RAY**, **USDC**, and **USDT**
+-🔍 These four tokens serve as the core assets for most simulations and optimizations, especially within the Solana ecosystem.
 - **CoinGecko** integration for accurate price data across major tokens.
 - Batch simulations across multiple tokens simultaneously.
 
