@@ -6,6 +6,9 @@
 It monitors price movements during simulated block delays and calculates potential Maximum Extractable Value (MEV) that front-runners could capture.  
 It provides both a **command-line interface (CLI)** and a **web-based dashboard** for running simulations and viewing risk reports.
 
+> **Note:** This project is intended for testing OTC trade risk scenarios. It is still under active development, and certain features may not be fully functional or stable yet.
+
+
 ---
 
 
