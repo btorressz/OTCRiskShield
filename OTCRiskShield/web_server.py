@@ -128,10 +128,22 @@ class WebServer:
                             <div class="mb-3">
                                 <label class="form-label">Token</label>
                                 <select class="form-select" name="token">
-                                    <option value="SOL">SOL</option>
-                                    <option value="USDC">USDC</option>
-                                    <option value="USDT">USDT</option>
-                                    <option value="RAY">RAY</option>
+                                    <option value="SOL">SOL - Solana</option>
+                                    <option value="BTC">BTC - Bitcoin</option>
+                                    <option value="ETH">ETH - Ethereum</option>
+                                    <option value="USDC">USDC - USD Coin</option>
+                                    <option value="USDT">USDT - Tether</option>
+                                    <option value="BNB">BNB - Binance Coin</option>
+                                    <option value="ADA">ADA - Cardano</option>
+                                    <option value="MATIC">MATIC - Polygon</option>
+                                    <option value="AVAX">AVAX - Avalanche</option>
+                                    <option value="DOT">DOT - Polkadot</option>
+                                    <option value="LINK">LINK - Chainlink</option>
+                                    <option value="UNI">UNI - Uniswap</option>
+                                    <option value="RAY">RAY - Raydium</option>
+                                    <option value="SRM">SRM - Serum</option>
+                                    <option value="ORCA">ORCA - Orca</option>
+                                    <option value="MNGO">MNGO - Mango</option>
                                 </select>
                             </div>
                             <div class="mb-3">
@@ -223,7 +235,7 @@ class WebServer:
                 alert_threshold=float(data.get('alert_threshold', 0.02)),
                 historical_tracking=data.get('historical_tracking', True),
                 advanced_risk_scoring=data.get('advanced_risk_scoring', True),
-                batch_tokens=data.get('batch_tokens', ["SOL", "BTC", "ETH", "USDC"]),
+                batch_tokens=data.get('batch_tokens', ["SOL", "BTC", "ETH", "USDC", "USDT", "BNB", "ADA", "MATIC", "AVAX", "DOT", "LINK", "UNI", "RAY", "SRM", "ORCA", "MNGO"]),
                 custom_delay_periods=data.get('custom_delay_periods', [1.0, 2.0, 3.0, 5.0, 10.0])
             )
             
@@ -462,3 +474,4 @@ async def start_web_server(config: Config):
 if __name__ == "__main__":
     config = Config()
     asyncio.run(start_web_server(config))
+
