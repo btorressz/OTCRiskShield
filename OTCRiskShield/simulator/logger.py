@@ -140,3 +140,4 @@ class MEVLogger:
             'max_mev': max(profits),
             'min_mev': min(profits)
         }
+
