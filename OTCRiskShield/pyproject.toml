@@ -1,0 +1,9 @@
+[project]
+name = "otc-risk-shield"
+version = "0.1.0"
+description = "A test project/prototype for a risk shield simulator"
+requires-python = ">=3.11"
+dependencies = [
+    "aiohttp>=3.12.13",
+    "jinja2>=3.1.6",
+]

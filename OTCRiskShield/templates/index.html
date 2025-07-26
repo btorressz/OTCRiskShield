@@ -1,0 +1,937 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OTC Front-Running Defense Simulator</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            font-weight: 300;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+        }
+
+        .stat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .stat-title {
+            font-size: 0.9rem;
+            color: #666;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .stat-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            font-size: 1.5rem;
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-subtitle {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .actions-section {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 2.5rem;
+            margin-bottom: 3rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .actions-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+        }
+
+        .actions-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 2rem;
+            color: #333;
+            text-align: center;
+            position: relative;
+        }
+
+        .actions-title::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 3px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            border-radius: 2px;
+        }
+
+        .action-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .action-btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 15px;
+            padding: 1.5rem 2rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .action-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 35px rgba(102, 126, 234, 0.4);
+            color: white;
+            text-decoration: none;
+        }
+
+        .action-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: all 0.5s ease;
+        }
+
+        .action-btn:hover::before {
+            left: 100%;
+        }
+
+        .config-section {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 2.5rem;
+            margin-bottom: 3rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .config-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+        }
+
+        .config-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 2rem;
+            color: #333;
+            text-align: center;
+            position: relative;
+        }
+
+        .config-title::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 3px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            border-radius: 2px;
+        }
+
+        .config-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .config-card {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .config-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+
+        .config-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.12);
+        }
+
+        .config-card:hover::before {
+            opacity: 1;
+        }
+
+        .config-label {
+            font-size: 0.8rem;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 0.8rem;
+            font-weight: 600;
+        }
+
+        .config-value {
+            font-size: 2rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .results-section {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 2.5rem;
+            margin-bottom: 3rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            display: none;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .results-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+        }
+
+        .results-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 2rem;
+            color: #333;
+            text-align: center;
+            position: relative;
+        }
+
+        .results-title::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 3px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            border-radius: 2px;
+        }
+
+        .simulation-status {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .result-card {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .result-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+        }
+
+        .result-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.12);
+        }
+
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .result-header h3 {
+            margin: 0;
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #333;
+        }
+
+        .risk-badge {
+            padding: 0.6rem 1.2rem;
+            border-radius: 25px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .risk-safe {
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            color: white;
+        }
+
+        .risk-detected {
+            background: linear-gradient(135deg, #ff9800, #f57c00);
+            color: white;
+        }
+
+        .result-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .result-stat {
+            text-align: center;
+            background: rgba(102, 126, 234, 0.05);
+            border-radius: 12px;
+            padding: 1rem;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(102, 126, 234, 0.1);
+        }
+
+        .result-stat:hover {
+            background: rgba(102, 126, 234, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .result-stat-label {
+            font-size: 0.8rem;
+            color: #666;
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 600;
+        }
+
+        .result-stat-value {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #333;
+        }
+
+        .how-it-works {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 2.5rem;
+            margin-bottom: 3rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .how-it-works::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+        }
+
+        .how-it-works-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 2rem;
+            color: #333;
+            text-align: center;
+            position: relative;
+        }
+
+        .how-it-works-title::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 3px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            border-radius: 2px;
+        }
+
+        .steps-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+        }
+
+        .step-card {
+            text-align: center;
+            padding: 2rem;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .step-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+
+        .step-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.12);
+        }
+
+        .step-card:hover::before {
+            opacity: 1;
+        }
+
+        .step-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 15px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            margin: 0 auto 1rem;
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        .step-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 0.8rem;
+        }
+
+        .step-description {
+            color: #666;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+            
+            .stat-card {
+                padding: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1><i class="fas fa-shield-alt"></i> OTC Front-Running Defense Simulator</h1>
+            <p>Advanced protection against front-running attacks in cryptocurrency trades</p>
+        </div>
+
+        <!-- Status Cards -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-header">
+                    <span class="stat-title">Total Simulations</span>
+                    <div class="stat-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                </div>
+                <div class="stat-value">{{ total_simulations }}</div>
+                <div class="stat-subtitle">Completed analyses</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-header">
+                    <span class="stat-title">Server Status</span>
+                    <div class="stat-icon">
+                        <i class="fas fa-server"></i>
+                    </div>
+                </div>
+                <div class="stat-value">Online</div>
+                <div class="stat-subtitle">Ready for simulations</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-header">
+                    <span class="stat-title">Active Token</span>
+                    <div class="stat-icon">
+                        <i class="fas fa-coins"></i>
+                    </div>
+                </div>
+                <div class="stat-value">{{ config.token }}</div>
+                <div class="stat-subtitle">Amount: {{ config.amount }}</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-header">
+                    <span class="stat-title">Live SOL Price</span>
+                    <div class="stat-icon">
+                        <i class="fab fa-solana"></i>
+                    </div>
+                </div>
+                <div class="stat-value" id="solPrice">Loading...</div>
+                <div class="stat-subtitle" id="priceChange">Fetching data...</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-header">
+                    <span class="stat-title">Risk Threshold</span>
+                    <div class="stat-icon">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                </div>
+                <div class="stat-value">{{ "%.1f"|format(config.threshold * 100) }}%</div>
+                <div class="stat-subtitle">Block delay: {{ config.delay }}s</div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="actions-section">
+            <h2 class="actions-title">Quick Actions</h2>
+            <div class="action-buttons">
+                <button class="action-btn" onclick="runQuickSimulation()">
+                    <i class="fas fa-play"></i>
+                    Run Simulation
+                </button>
+                <a href="/simulation" class="action-btn">
+                    <i class="fas fa-cogs"></i>
+                    Custom Setup
+                </a>
+                <a href="/report" class="action-btn">
+                    <i class="fas fa-chart-bar"></i>
+                    View Reports
+                </a>
+            </div>
+        </div>
+
+        <!-- Configuration Display -->
+        <div class="config-section">
+            <h2 class="config-title">Current Configuration</h2>
+            <div class="config-grid">
+                <div class="config-card">
+                    <div class="config-label">Token</div>
+                    <div class="config-value">{{ config.token }}</div>
+                </div>
+                <div class="config-card">
+                    <div class="config-label">Amount</div>
+                    <div class="config-value">{{ config.amount }}</div>
+                </div>
+                <div class="config-card">
+                    <div class="config-label">Block Delay</div>
+                    <div class="config-value">{{ config.delay }}s</div>
+                </div>
+                <div class="config-card">
+                    <div class="config-label">Risk Threshold</div>
+                    <div class="config-value">{{ "%.1f"|format(config.threshold * 100) }}%</div>
+                </div>
+                <div class="config-card">
+                    <div class="config-label">Slippage Tolerance</div>
+                    <div class="config-value">{{ "%.1f"|format(config.slippage_tolerance * 100) }}%</div>
+                </div>
+                <div class="config-card">
+                    <div class="config-label">Gas Cost</div>
+                    <div class="config-value">{{ config.gas_cost }} SOL</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Simulation Status -->
+        <div id="simulationStatus" class="simulation-status">
+            <div class="spinner"></div>
+            <span>Running simulation...</span>
+        </div>
+
+        <!-- How It Works Section -->
+        <div class="how-it-works">
+            <h2 class="how-it-works-title">How It Works</h2>
+            <div class="steps-grid">
+                <div class="step-card">
+                    <div class="step-icon">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="step-title">1. Simulate Block Delay</div>
+                    <div class="step-description">
+                        Mimics the time delay between OTC order placement and execution, typically 1-2 blockchain blocks
+                    </div>
+                </div>
+                <div class="step-card">
+                    <div class="step-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <div class="step-title">2. Monitor Price Changes</div>
+                    <div class="step-description">
+                        Fetches real-time prices from Jupiter API during the delay period to track market movements
+                    </div>
+                </div>
+                <div class="step-card">
+                    <div class="step-icon">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <div class="step-title">3. Detect Risks</div>
+                    <div class="step-description">
+                        Analyzes price movements against thresholds to identify potential front-running opportunities
+                    </div>
+                </div>
+                <div class="step-card">
+                    <div class="step-icon">
+                        <i class="fas fa-dollar-sign"></i>
+                    </div>
+                    <div class="step-title">4. Calculate MEV</div>
+                    <div class="step-description">
+                        Estimates theoretical profit that front-runners could extract, accounting for gas costs and slippage
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Results -->
+        <div id="resultsSection" class="results-section">
+            <h2 class="results-title">Simulation Results</h2>
+            <div id="resultsContent"></div>
+        </div>
+    </div>
+
+    <script>
+        async function runQuickSimulation() {
+            const statusDiv = document.getElementById('simulationStatus');
+            const resultsSection = document.getElementById('resultsSection');
+            
+            // Show loading status
+            statusDiv.style.display = 'flex';
+            resultsSection.style.display = 'none';
+            
+            try {
+                const response = await fetch('/api/simulate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        token: '{{ config.token }}',
+                        amount: {{ config.amount }},
+                        delay: {{ config.delay }},
+                        threshold: {{ config.threshold }},
+                        iterations: 1,
+                        verbose: false
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const result = await response.json();
+                
+                // Hide loading status
+                statusDiv.style.display = 'none';
+                
+                // Show results
+                displayResults(result);
+                resultsSection.style.display = 'block';
+                
+            } catch (error) {
+                console.error('Simulation error:', error);
+                statusDiv.innerHTML = `
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <span>Simulation failed: ${error.message}</span>
+                `;
+                statusDiv.style.background = 'linear-gradient(135deg, #f44336, #d32f2f)';
+            }
+        }
+        
+        function displayResults(result) {
+            const resultsContent = document.getElementById('resultsContent');
+            
+            const riskClass = result.risk_detected ? 'risk-detected' : 'risk-safe';
+            const riskText = result.risk_detected ? 'RISK DETECTED' : 'SAFE TRADE';
+            const riskIcon = result.risk_detected ? 'exclamation-triangle' : 'check-circle';
+            
+            resultsContent.innerHTML = `
+                <div class="result-card">
+                    <div class="result-header">
+                        <h3 style="color: #333; margin: 0;">Trade Analysis Complete</h3>
+                        <div class="risk-badge ${riskClass}">
+                            <i class="fas fa-${riskIcon}"></i> ${riskText}
+                        </div>
+                    </div>
+                    
+                    <div class="result-stats">
+                        <div class="result-stat">
+                            <div class="result-stat-label">Token</div>
+                            <div class="result-stat-value">${result.token}</div>
+                        </div>
+                        <div class="result-stat">
+                            <div class="result-stat-label">Amount</div>
+                            <div class="result-stat-value">${result.amount}</div>
+                        </div>
+                        <div class="result-stat">
+                            <div class="result-stat-label">Price Change</div>
+                            <div class="result-stat-value" style="color: ${result.price_change > 0 ? '#4CAF50' : '#f44336'}">
+                                ${result.price_change > 0 ? '+' : ''}${result.price_change.toFixed(4)}%
+                            </div>
+                        </div>
+                        <div class="result-stat">
+                            <div class="result-stat-label">MEV Profit</div>
+                            <div class="result-stat-value" style="color: ${result.mev_profit > 0 ? '#4CAF50' : '#666'}">
+                                $${result.mev_profit.toFixed(2)}
+                            </div>
+                        </div>
+                        <div class="result-stat">
+                            <div class="result-stat-label">Initial Price</div>
+                            <div class="result-stat-value">$${result.initial_price.toFixed(6)}</div>
+                        </div>
+                        <div class="result-stat">
+                            <div class="result-stat-label">Final Price</div>
+                            <div class="result-stat-value">$${result.final_price.toFixed(6)}</div>
+                        </div>
+                        <div class="result-stat">
+                            <div class="result-stat-label">Execution Time</div>
+                            <div class="result-stat-value">${result.execution_time.toFixed(2)}s</div>
+                        </div>
+                        <div class="result-stat">
+                            <div class="result-stat-label">Data Points</div>
+                            <div class="result-stat-value">${result.price_history ? result.price_history.length : 0}</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Fetch live SOL price from our backend
+        async function fetchSolPrice() {
+            try {
+                const response = await fetch('/api/sol-price');
+                const data = await response.json();
+                
+                if (data.success && data.price) {
+                    const price = parseFloat(data.price);
+                    const change24h = parseFloat(data.change_24h || 0);
+                    
+                    // Update price display
+                    document.getElementById('solPrice').textContent = `$${price.toFixed(2)}`;
+                    
+                    // Show 24h change from CoinGecko
+                    const changeElement = document.getElementById('priceChange');
+                    if (change24h > 0) {
+                        changeElement.innerHTML = `<span style="color: #4CAF50; font-weight: 600;"><i class="fas fa-arrow-up"></i> +${change24h.toFixed(2)}%</span>`;
+                    } else if (change24h < 0) {
+                        changeElement.innerHTML = `<span style="color: #f44336; font-weight: 600;"><i class="fas fa-arrow-down"></i> ${change24h.toFixed(2)}%</span>`;
+                    } else {
+                        changeElement.innerHTML = `<span style="color: #666; font-weight: 600;"><i class="fas fa-minus"></i> 0.00%</span>`;
+                    }
+                } else {
+                    document.getElementById('solPrice').textContent = 'Error';
+                    document.getElementById('priceChange').innerHTML = '<span style="color: #f44336;">Failed to fetch</span>';
+                }
+            } catch (error) {
+                console.error('Failed to fetch SOL price:', error);
+                document.getElementById('solPrice').textContent = 'Error';
+                document.getElementById('priceChange').innerHTML = '<span style="color: #f44336;">Connection failed</span>';
+            }
+        }
+
+        // Add pulse effect when price updates
+        function addPulseEffect() {
+            const priceElement = document.getElementById('solPrice');
+            priceElement.style.animation = 'none';
+            setTimeout(() => {
+                priceElement.style.animation = 'pulse 0.5s ease-in-out';
+            }, 10);
+        }
+
+        // Fetch price on load and update every 15 seconds
+        fetchSolPrice();
+        setInterval(() => {
+            fetchSolPrice();
+            addPulseEffect();
+        }, 15000);
+
+        // Auto-refresh status every 30 seconds
+        setInterval(async () => {
+            try {
+                const response = await fetch('/api/status');
+                const status = await response.json();
+                // Update total simulations if needed
+                if (status.total_simulations !== undefined) {
+                    // Could update the stat card here
+                }
+            } catch (error) {
+                console.warn('Status check failed:', error);
+            }
+        }, 30000);
+    </script>
+</body>
+</html>

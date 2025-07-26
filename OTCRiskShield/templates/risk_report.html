@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OTC Front-Running Risk Report</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <div class="container-fluid">
+        <header class="bg-dark text-white p-3 mb-4">
+            <div class="row align-items-center">
+                <div class="col">
+                    <h1 class="mb-0">
+                        <i class="fas fa-shield-alt"></i>
+                        OTC Front-Running Defense Report
+                    </h1>
+                </div>
+                <div class="col-auto">
+                    <span class="badge bg-info fs-6">{{ timestamp }}</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Summary Cards -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card bg-primary text-white">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <h5 class="card-title">Total Simulations</h5>
+                                <h2 class="mb-0">{{ summary.total_simulations }}</h2>
+                            </div>
+                            <div class="align-self-center">
+                                <i class="fas fa-chart-line fa-2x"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card {% if summary.risks_detected > 0 %}bg-warning{% else %}bg-success{% endif %} text-white">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <h5 class="card-title">Risks Detected</h5>
+                                <h2 class="mb-0">{{ summary.risks_detected }}</h2>
+                                <small>{{ "%.1f"|format(summary.risk_percentage) }}% of trades</small>
+                            </div>
+                            <div class="align-self-center">
+                                <i class="fas fa-exclamation-triangle fa-2x"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-info text-white">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <h5 class="card-title">Total MEV</h5>
+                                <h2 class="mb-0">${{ "%.2f"|format(summary.total_mev_profit) }}</h2>
+                                <small>Theoretical profit</small>
+                            </div>
+                            <div class="align-self-center">
+                                <i class="fas fa-dollar-sign fa-2x"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-secondary text-white">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <h5 class="card-title">Avg MEV/Risk</h5>
+                                <h2 class="mb-0">${{ "%.2f"|format(summary.average_mev_per_risk) }}</h2>
+                                <small>Per opportunity</small>
+                            </div>
+                            <div class="align-self-center">
+                                <i class="fas fa-chart-bar fa-2x"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Configuration -->
+        <div class="row mb-4">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-cog"></i> Simulation Configuration</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-2">
+                                <strong>Token:</strong> {{ config.token }}
+                            </div>
+                            <div class="col-md-2">
+                                <strong>Amount:</strong> {{ config.amount }}
+                            </div>
+                            <div class="col-md-2">
+                                <strong>Delay:</strong> {{ config.delay }}s
+                            </div>
+                            <div class="col-md-2">
+                                <strong>Threshold:</strong> {{ "%.2f"|format(config.threshold * 100) }}%
+                            </div>
+                            <div class="col-md-2">
+                                <strong>Iterations:</strong> {{ config.iterations }}
+                            </div>
+                            <div class="col-md-2">
+                                <strong>Mode:</strong> {{ "Verbose" if config.verbose else "Standard" }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts -->
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-chart-pie"></i> Risk Distribution</h5>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="riskChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-chart-area"></i> Price Change Distribution</h5>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="priceChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Detailed Results -->
+        <div class="row mb-4">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0"><i class="fas fa-table"></i> Detailed Results</h5>
+                        <div class="btn-group" role="group">
+                            <button type="button" class="btn btn-sm btn-outline-primary" onclick="filterResults('all')">All</button>
+                            <button type="button" class="btn btn-sm btn-outline-warning" onclick="filterResults('risky')">Risky Only</button>
+                            <button type="button" class="btn btn-sm btn-outline-success" onclick="filterResults('safe')">Safe Only</button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover" id="resultsTable">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th>Timestamp</th>
+                                        <th>Token</th>
+                                        <th>Amount</th>
+                                        <th>Initial Price</th>
+                                        <th>Final Price</th>
+                                        <th>Price Change</th>
+                                        <th>Risk Status</th>
+                                        <th>MEV Profit</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for result in results %}
+                                    <tr class="result-row {% if result.risk_detected %}table-warning{% endif %}" 
+                                        data-risk="{{ 'risky' if result.risk_detected else 'safe' }}">
+                                        <td>{{ result.timestamp[:19] }}</td>
+                                        <td><span class="badge bg-primary">{{ result.token }}</span></td>
+                                        <td>{{ "%.2f"|format(result.amount) }}</td>
+                                        <td>${{ "%.6f"|format(result.initial_price) }}</td>
+                                        <td>${{ "%.6f"|format(result.final_price) }}</td>
+                                        <td>
+                                            <span class="badge {% if result.price_change > 0 %}bg-success{% else %}bg-danger{% endif %}">
+                                                {{ "%+.4f"|format(result.price_change) }}%
+                                            </span>
+                                        </td>
+                                        <td>
+                                            {% if result.risk_detected %}
+                                                <span class="badge bg-warning"><i class="fas fa-exclamation-triangle"></i> RISK</span>
+                                            {% else %}
+                                                <span class="badge bg-success"><i class="fas fa-check"></i> SAFE</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if result.mev_profit > 0 %}
+                                                <span class="text-success fw-bold">${{ "%.2f"|format(result.mev_profit) }}</span>
+                                            {% else %}
+                                                <span class="text-muted">${{ "%.2f"|format(result.mev_profit) }}</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <button class="btn btn-sm btn-outline-info" onclick="showDetails('{{ loop.index0 }}')">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Price History Modal -->
+        <div class="modal fade" id="detailsModal" tabindex="-1">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Trade Details</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div id="detailsContent">
+                            <!-- Details will be loaded here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/bootstrap.bundle.min.js"></script>
+    <script>
+        // Results data for JavaScript
+        const resultsData = {{ results | tojson }};
+        
+        // Risk distribution chart
+        const riskCtx = document.getElementById('riskChart').getContext('2d');
+        new Chart(riskCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Safe', 'Risky'],
+                datasets: [{
+                    data: [{{ summary.total_simulations - summary.risks_detected }}, {{ summary.risks_detected }}],
+                    backgroundColor: ['#28a745', '#ffc107']
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                }
+            }
+        });
+
+        // Price change distribution chart
+        const priceCtx = document.getElementById('priceChart').getContext('2d');
+        const priceChanges = resultsData.map(r => r.price_change);
+        new Chart(priceCtx, {
+            type: 'line',
+            data: {
+                labels: resultsData.map((r, i) => `Trade ${i + 1}`),
+                datasets: [{
+                    label: 'Price Change %',
+                    data: priceChanges,
+                    borderColor: '#007bff',
+                    backgroundColor: 'rgba(0, 123, 255, 0.1)',
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Price Change %'
+                        }
+                    }
+                }
+            }
+        });
+
+        // Filter functions
+        function filterResults(type) {
+            const rows = document.querySelectorAll('.result-row');
+            rows.forEach(row => {
+                if (type === 'all' || row.dataset.risk === type) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        }
+
+        // Show details modal
+        function showDetails(index) {
+            const result = resultsData[index];
+            const content = document.getElementById('detailsContent');
+            
+            content.innerHTML = `
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Trade Information</h6>
+                        <table class="table table-sm">
+                            <tr><td>Token</td><td>${result.token}</td></tr>
+                            <tr><td>Amount</td><td>${result.amount}</td></tr>
+                            <tr><td>Delay</td><td>${result.delay_seconds}s</td></tr>
+                            <tr><td>Execution Time</td><td>${result.execution_time.toFixed(2)}s</td></tr>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Price Analysis</h6>
+                        <table class="table table-sm">
+                            <tr><td>Initial Price</td><td>$${result.initial_price.toFixed(6)}</td></tr>
+                            <tr><td>Final Price</td><td>$${result.final_price.toFixed(6)}</td></tr>
+                            <tr><td>Change</td><td>${result.price_change > 0 ? '+' : ''}${result.price_change.toFixed(4)}%</td></tr>
+                            <tr><td>Threshold</td><td>${result.risk_threshold.toFixed(2)}%</td></tr>
+                        </table>
+                    </div>
+                </div>
+                ${result.price_history ? `
+                <div class="mt-3">
+                    <h6>Price History</h6>
+                    <canvas id="detailChart"></canvas>
+                </div>
+                ` : ''}
+            `;
+            
+            const modal = new bootstrap.Modal(document.getElementById('detailsModal'));
+            modal.show();
+            
+            // Draw price history chart if data available
+            if (result.price_history) {
+                setTimeout(() => {
+                    const detailCtx = document.getElementById('detailChart').getContext('2d');
+                    new Chart(detailCtx, {
+                        type: 'line',
+                        data: {
+                            labels: result.price_history.map((p, i) => `${i * 0.5}s`),
+                            datasets: [{
+                                label: 'Price',
+                                data: result.price_history.map(p => p.price),
+                                borderColor: result.risk_detected ? '#ffc107' : '#28a745',
+                                backgroundColor: result.risk_detected ? 'rgba(255, 193, 7, 0.1)' : 'rgba(40, 167, 69, 0.1)',
+                                fill: true
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            scales: {
+                                y: {
+                                    title: {
+                                        display: true,
+                                        text: 'Price (USD)'
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }, 100);
+            }
+        }
+    </script>
+</body>
+</html>
