@@ -143,6 +143,11 @@ The application follows a modular design with clear separation between simulatio
 ![OTC Risk Dashboard](https://github.com/btorressz/OTCRiskShield/blob/main/otcriskdash.jpg)
 
 
+### Custom
+
+![Custom Simulation](https://github.com/btorressz/OTCRiskShield/blob/main/otcriskcustom.jpg)
+
+
   ---
 
 
