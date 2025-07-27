@@ -136,6 +136,16 @@ The application follows a modular design with clear separation between simulatio
   
   ---
 
+  ## 📸 Screenshots
+  
+  ###  Dashboard
+
+![OTC Risk Dashboard](https://github.com/btorressz/OTCRiskShield/blob/main/otcriskdash.jpg)
+
+
+  ---
+
+
  ### 🧾📜 LICENSE
    - This project is under the **MIT LICENSE**
 
